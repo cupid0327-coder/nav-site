@@ -18,6 +18,12 @@ export default async function AuthedLayout({ children }: { children: React.React
             <NavLink href="/admin/categories">分类管理</NavLink>
             <NavLink href="/admin/search">搜索引擎</NavLink>
             <NavLink href="/admin/settings">站点设置</NavLink>
+            <Link
+              href="/"
+              className="mt-2 rounded-md px-3 py-2 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
+              ← 返回首页
+            </Link>
           </nav>
           <form
             action={async () => {

@@ -1,6 +1,8 @@
 import { asc } from 'drizzle-orm';
 import { db } from '@/db';
 import { categories, links, searchEngines, settings } from '@/db/schema';
+import Link from 'next/link';
+import { Settings } from 'lucide-react';
 import { SearchBar } from '@/components/public/search-bar';
 import { ThemeToggle } from '@/components/theme-toggle';
 
@@ -30,7 +32,17 @@ export default async function HomePage() {
       <header className="border-b">
         <div className="container flex h-14 items-center justify-between">
           <div className="text-base font-semibold">{title}</div>
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <Link
+              href="/admin"
+              title="管理后台"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
+              <Settings className="h-4 w-4" />
+              <span className="sr-only">管理后台</span>
+            </Link>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
