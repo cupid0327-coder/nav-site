@@ -24,14 +24,15 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.75rem;
+    --bg-dot: 0 0% 82%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 0 0% 10.2%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 0 0% 10.2%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 0 0% 10.2%;
     --popover-foreground: 210 40% 98%;
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
@@ -46,6 +47,7 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+    --bg-dot: 0 0% 20%;
   }
 
   * {
@@ -53,6 +55,13 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image:
+      radial-gradient(ellipse 50% 60% at center, hsl(var(--background)) 0%, hsl(var(--background)) 30%, transparent 80%),
+      radial-gradient(circle, hsl(var(--bg-dot)) 1px, transparent 1px);
+    background-size: 100% 100%, 20px 20px;
+    background-repeat: no-repeat, repeat;
+    background-position: center, top left;
+    background-attachment: fixed, fixed;
     font-feature-settings: 'rlig' 1, 'calt' 1;
   }
 }
