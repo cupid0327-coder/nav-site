@@ -26,7 +26,7 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <header className="border-b">
         <div className="container flex h-14 items-center justify-between">
           <div className="text-base font-semibold">{title}</div>
@@ -42,7 +42,7 @@ export default async function HomePage() {
         <SearchBar engines={engines} />
       </section>
 
-      <section className="container space-y-10 pb-20">
+      <section className="container flex-1 space-y-10 pb-20">
         {cats.length === 0 ? (
           <p className="text-center text-muted-foreground">
             还没有分类和链接，<a href="/admin" className="text-primary underline">前往后台</a>开始配置。
