@@ -55,13 +55,11 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-image:
-      radial-gradient(ellipse 50% 60% at center, hsl(var(--background)) 0%, hsl(var(--background)) 30%, transparent 80%),
-      radial-gradient(circle, hsl(var(--bg-dot)) 1px, transparent 1px);
-    background-size: 100% 100%, 20px 20px;
-    background-repeat: no-repeat, repeat;
-    background-position: center, top left;
-    background-attachment: fixed, fixed;
+    background-image: radial-gradient(circle, hsl(var(--bg-dot)) 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-repeat: repeat;
+    background-position: top left;
+    background-attachment: fixed;
     font-feature-settings: 'rlig' 1, 'calt' 1;
   }
 }
