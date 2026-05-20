@@ -64,3 +64,19 @@ PM2 + Nginx on a VPS. `npm run build` produces `.next/standalone`; copy `public/
 **Single-process constraint**: `ecosystem.config.cjs` runs `instances: 1, exec_mode: 'fork'`. Do not change to cluster mode — the in-memory rate limiter and the better-sqlite3 connection are per-process and would diverge across workers.
 
 **Upgrade path for existing deployments**: `git pull && npm ci && npm run db:migrate && npm run build`, recopy `public/` + `.next/static/` into `.next/standalone/`, then `pm2 restart n_site`. If the instance was originally bootstrapped with `db:push` (empty `__drizzle_migrations`), the first `db:migrate` will hit "table already exists" — see the Data layer gotcha above for the SHA-256 workaround.
+
+### Deployment gotchas (learned the hard way)
+
+**Two `app.db` problem.** Next.js standalone output lives in `.next/standalone/server.js`, but PM2's `exec cwd` is the repo root. Because `src/db/index.ts` uses `process.env.DATABASE_URL || './data/app.db'` and Next standalone reads `.env` from `.next/standalone/.env`, you can easily end up with two databases: `<repo>/data/app.db` (where `db:seed` / `db:migrate` write) and `<repo>/.next/standalone/data/app.db` (what the running app opens). Symptom: `SqliteError: no such table: xxx` even though `sqlite3 data/app.db ".tables"` shows the table exists.
+- Fix: put an **absolute** `DATABASE_URL` in `.next/standalone/.env`, e.g. `DATABASE_URL=/root/nav-site/data/app.db`. Verify with `pm2 env <id> | grep DATABASE_URL` and `find . -name app.db`. Delete the stray empty DB once the app is confirmed using the right one.
+- The same trap applies to `AUTH_SECRET` / `AUTH_TRUST_HOST` / `AUTH_URL` — Next standalone only reads `.next/standalone/.env`, not the repo-root `.env`.
+
+**`npm run db:seed` fails with `bad option: --env-file=.env`.** The script uses `tsx --env-file=.env`, which requires Node 20.6+. On older Node, bypass the flag by passing env inline:
+```
+DATABASE_URL=/abs/path/data/app.db SEED_ADMIN_USERNAME=admin SEED_ADMIN_PASSWORD='...' npx tsx scripts/seed.ts
+```
+Always set `DATABASE_URL` explicitly when seeding/migrating on the server — otherwise you'll seed the wrong `data/app.db` (see two-DB problem above).
+
+**Auth.js redirects to the wrong host after login.** If you access the site via `http://0.0.0.0:3000` or any address that isn't the real public URL, Auth.js v5 builds callback/redirect URLs from request headers and the result can be nonsense (redirect to a different site, redirect loops). Always access via the real hostname/IP, and in production set `AUTH_URL` in `.next/standalone/.env` to the exact URL users see in the browser (scheme + host + port, or the Nginx-fronted domain). `AUTH_TRUST_HOST=true` alone is not enough when the host header is unreliable.
+
+**Missing `public/` directory.** `public/` is in `.gitignore` (uploaded favicons live there), so a fresh clone has no `public/`. Create `public/uploads/icons/` on the server before the first `npm run build`, otherwise the favicon pipeline will fail to write files at runtime and the standalone copy step will skip it.
