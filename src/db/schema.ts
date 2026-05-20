@@ -26,6 +26,7 @@ export const links = sqliteTable('links', {
   description: text('description'),
   iconUrl: text('icon_url'),
   order: integer('order').default(0).notNull(),
+  hidden: integer('hidden', { mode: 'boolean' }).default(false).notNull(),
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 

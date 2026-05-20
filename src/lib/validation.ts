@@ -13,6 +13,7 @@ export const linkSchema = z.object({
   description: z.string().max(300).nullish(),
   iconUrl: z.string().max(500).nullish(),
   order: z.number().int().default(0),
+  hidden: z.boolean().default(false),
 });
 
 export const searchEngineSchema = z.object({

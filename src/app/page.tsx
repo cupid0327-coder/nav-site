@@ -2,7 +2,8 @@ import { asc } from 'drizzle-orm';
 import { db } from '@/db';
 import { categories, links, searchEngines, settings } from '@/db/schema';
 import Link from 'next/link';
-import { Settings } from 'lucide-react';
+import { EyeOff, Settings } from 'lucide-react';
+import { auth } from '@/lib/auth';
 import { SearchBar } from '@/components/public/search-bar';
 import { RecommendDialog } from '@/components/public/recommend-dialog';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -10,19 +11,23 @@ import { ThemeToggle } from '@/components/theme-toggle';
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const [cats, allLinks, engines, settingRows] = await Promise.all([
+  const [cats, allLinks, engines, settingRows, session] = await Promise.all([
     db.select().from(categories).orderBy(asc(categories.order), asc(categories.id)),
     db.select().from(links).orderBy(asc(links.order), asc(links.id)),
     db.select().from(searchEngines).orderBy(asc(searchEngines.order), asc(searchEngines.id)),
     db.select().from(settings),
+    auth(),
   ]);
+
+  const isAdmin = !!session?.user;
+  const visibleLinks = isAdmin ? allLinks : allLinks.filter((l) => !l.hidden);
 
   const settingMap = Object.fromEntries(settingRows.map((r) => [r.key, r.value]));
   const title = settingMap.siteTitle || 'My Nav';
   const subtitle = settingMap.siteSubtitle || '个人导航站';
 
   const linksByCategory = new Map<number, typeof allLinks>();
-  for (const l of allLinks) {
+  for (const l of visibleLinks) {
     const arr = linksByCategory.get(l.categoryId) ?? [];
     arr.push(l);
     linksByCategory.set(l.categoryId, arr);
@@ -79,8 +84,16 @@ export default async function HomePage() {
                       target="_blank"
                       rel="noreferrer"
                       title={l.description || l.title}
-                      className="group flex items-center gap-3 rounded-xl border bg-card p-3 transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
+                      className="group relative flex items-center gap-3 rounded-xl border bg-card p-3 transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
                     >
+                      {isAdmin && l.hidden && (
+                        <span
+                          className="absolute right-1.5 top-1.5 rounded bg-muted/80 p-0.5 text-muted-foreground"
+                          title="仅管理员可见"
+                        >
+                          <EyeOff className="h-3 w-3" />
+                        </span>
+                      )}
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted/40">
                         {l.iconUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element

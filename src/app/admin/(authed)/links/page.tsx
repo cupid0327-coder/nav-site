@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Plus, Pencil, Trash2, RefreshCw } from 'lucide-react';
+import { Plus, Pencil, Trash2, RefreshCw, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -89,6 +89,7 @@ export default function LinksPage() {
       description: (String(form.get('description') || '') || null) as string | null,
       iconUrl: iconUrl || null,
       order: Number(form.get('order') || 0),
+      hidden: form.get('hidden') === 'on',
     };
     if (editing) {
       await apiFetch(`/api/links/${editing.id}`, { method: 'PUT', body: JSON.stringify(payload) });
@@ -103,6 +104,14 @@ export default function LinksPage() {
   async function onDelete(id: number) {
     if (!confirm('确认删除？')) return;
     await apiFetch(`/api/links/${id}`, { method: 'DELETE' });
+    load();
+  }
+
+  async function toggleHidden(row: LinkRow) {
+    await apiFetch(`/api/links/${row.id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ hidden: !row.hidden }),
+    });
     load();
   }
 
@@ -190,6 +199,16 @@ export default function LinksPage() {
                 <Label htmlFor="order">排序</Label>
                 <Input id="order" name="order" type="number" defaultValue={editing?.order ?? 0} />
               </div>
+              <div className="flex items-center gap-2">
+                <input
+                  id="hidden"
+                  name="hidden"
+                  type="checkbox"
+                  defaultChecked={editing?.hidden ?? false}
+                  className="h-4 w-4 rounded border-input"
+                />
+                <Label htmlFor="hidden" className="cursor-pointer">隐藏（未登录访客看不到）</Label>
+              </div>
               <DialogFooter>
                 <Button type="submit" disabled={iconBusy}>保存</Button>
               </DialogFooter>
@@ -212,7 +231,7 @@ export default function LinksPage() {
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.id} className="border-t">
+              <tr key={r.id} className={'border-t ' + (r.hidden ? 'opacity-60' : '')}>
                 <td className="px-4 py-2">
                   {r.iconUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -231,6 +250,14 @@ export default function LinksPage() {
                 <td className="px-4 py-2">{r.order}</td>
                 <td className="px-4 py-2">
                   <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title={r.hidden ? '点击显示' : '点击隐藏'}
+                      onClick={() => toggleHidden(r)}
+                    >
+                      {r.hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
                     <Button variant="ghost" size="icon" onClick={() => openEdit(r)}>
                       <Pencil className="h-4 w-4" />
                     </Button>

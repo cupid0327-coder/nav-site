@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, Suspense } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -57,7 +59,14 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
+    <div className="relative flex min-h-screen items-center justify-center bg-muted/40 px-4">
+      <Link
+        href="/"
+        className="absolute left-4 top-4 inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        返回首页
+      </Link>
       <Suspense>
         <LoginForm />
       </Suspense>
