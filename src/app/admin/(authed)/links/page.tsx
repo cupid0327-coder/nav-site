@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Plus, Pencil, Trash2, RefreshCw, Eye, EyeOff } from 'lucide-react';
+import { Plus, Pencil, Trash2, RefreshCw, RotateCcw, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -61,6 +61,18 @@ export default function LinksPage() {
     } finally {
       setIconBusy(false);
     }
+  }
+
+  async function restoreDefaultIcon() {
+    const inp = document.querySelector<HTMLInputElement>('input[name=url]');
+    const url = inp?.value;
+    if (!url) {
+      alert('请先填写 URL');
+      return;
+    }
+    if (!confirm('确定放弃当前自定义图标，重新从网站抓取 favicon？')) return;
+    setIconUrl('');
+    await refreshFavicon(url);
   }
 
   async function onUpload(file: File) {
@@ -183,6 +195,16 @@ export default function LinksPage() {
                     }}
                   >
                     <RefreshCw className="mr-1 h-3 w-3" /> 抓取
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={iconBusy}
+                    title="放弃自定义图标，重新从网站抓取 favicon"
+                    onClick={restoreDefaultIcon}
+                  >
+                    <RotateCcw className="mr-1 h-3 w-3" /> 还原默认
                   </Button>
                   <Input
                     type="file"

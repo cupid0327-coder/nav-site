@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState, useTransition } from 'react';
+import { Plus, Pencil, Trash2, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,10 +17,99 @@ import {
 import { apiFetch } from '@/lib/api-client';
 import type { Category } from '@/db/schema';
 
+const ICON_PRESETS = [
+  '🔍', '📚', '📖', '📰', '📝', '📁', '📂', '🗂️',
+  '💻', '🖥️', '⌨️', '🖱️', '📱', '💾', '💿', '🔌',
+  '🎬', '🎞️', '🎵', '🎧', '🎮', '🕹️', '🎨', '🖼️',
+  '🛠️', '🔧', '⚙️', '🧰', '🧪', '🧬', '🔬', '🔭',
+  '💼', '🏢', '📊', '📈', '📉', '💰', '💳', '🪙',
+  '🌐', '☁️', '🔐', '🔑', '🛡️', '🧱', '🚀', '⚡',
+  '🤖', '🧠', '✨', '⭐', '🔥', '💡', '🎯', '🏆',
+  '🛒', '🎁', '📦', '✉️', '📮', '🔔', '📌', '🏷️',
+  '☕', '🍔', '🍣', '🏠', '🚗', '✈️', '🌍', '🗺️',
+];
+
+function IconPicker({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDoc(e: MouseEvent) {
+      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [open]);
+
+  return (
+    <div ref={wrapRef} className="relative">
+      <div className="flex gap-2">
+        <Input
+          id="icon"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="emoji 或图片 URL"
+        />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setOpen((v) => !v)}
+          className="shrink-0"
+        >
+          <span className="mr-1 text-base leading-none">{value || '🙂'}</span>
+          <ChevronDown className="h-4 w-4" />
+        </Button>
+      </div>
+      {open && (
+        <div className="absolute right-0 z-50 mt-2 w-72 rounded-md border bg-popover p-2 shadow-md">
+          <div className="grid grid-cols-8 gap-1">
+            {ICON_PRESETS.map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                onClick={() => {
+                  onChange(emoji);
+                  setOpen(false);
+                }}
+                className={`flex h-8 w-8 items-center justify-center rounded text-lg hover:bg-accent ${
+                  value === emoji ? 'bg-accent ring-1 ring-primary' : ''
+                }`}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+          <div className="mt-2 flex justify-between border-t pt-2 text-xs text-muted-foreground">
+            <span>点击选择，或在输入框自定义</span>
+            <button
+              type="button"
+              className="hover:text-foreground"
+              onClick={() => {
+                onChange('');
+                setOpen(false);
+              }}
+            >
+              清除
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function CategoriesPage() {
   const [rows, setRows] = useState<Category[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Category | null>(null);
+  const [icon, setIcon] = useState('');
   const [, startTransition] = useTransition();
 
   async function load() {
@@ -31,12 +120,16 @@ export default function CategoriesPage() {
     load();
   }, []);
 
+  useEffect(() => {
+    if (open) setIcon(editing?.icon ?? '');
+  }, [open, editing]);
+
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     const payload = {
       name: String(form.get('name') || ''),
-      icon: (String(form.get('icon') || '') || null) as string | null,
+      icon: (icon || null) as string | null,
       order: Number(form.get('order') || 0),
     };
     if (editing) {
@@ -79,7 +172,7 @@ export default function CategoriesPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="icon">图标（emoji 或 URL，可选）</Label>
-                <Input id="icon" name="icon" defaultValue={editing?.icon ?? ''} />
+                <IconPicker value={icon} onChange={setIcon} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="order">排序（数字越小越靠前）</Label>
@@ -109,7 +202,7 @@ export default function CategoriesPage() {
               <tr key={r.id} className="border-t">
                 <td className="px-4 py-2 text-muted-foreground">{r.id}</td>
                 <td className="px-4 py-2">{r.name}</td>
-                <td className="px-4 py-2">{r.icon || '—'}</td>
+                <td className="px-4 py-2 text-lg">{r.icon || '—'}</td>
                 <td className="px-4 py-2">{r.order}</td>
                 <td className="px-4 py-2">
                   <div className="flex gap-1">
