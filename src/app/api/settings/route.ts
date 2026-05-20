@@ -3,6 +3,8 @@ import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { settings } from '@/db/schema';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const rows = await db.select().from(settings);
   const obj: Record<string, string> = {};
