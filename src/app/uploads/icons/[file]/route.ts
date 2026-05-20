@@ -32,7 +32,7 @@ export async function GET(_req: Request, { params }: { params: { file: string } 
     return new NextResponse(null, { status: 404 });
   }
 
-  return new NextResponse(buf, {
+  return new NextResponse(buf as unknown as BodyInit, {
     status: 200,
     headers: {
       'Content-Type': MIME[ext] ?? 'application/octet-stream',
