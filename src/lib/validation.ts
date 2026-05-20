@@ -31,3 +31,10 @@ export const settingsSchema = z.object({
   siteTitle: z.string().max(100).optional(),
   siteSubtitle: z.string().max(200).optional(),
 });
+
+export const linkSubmissionSchema = z.object({
+  title: z.string().min(1).max(100),
+  url: z.string().url().max(500),
+  description: z.string().max(300).optional().nullable(),
+  note: z.string().max(500).optional().nullable(),
+});

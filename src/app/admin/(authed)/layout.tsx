@@ -15,6 +15,7 @@ export default async function AuthedLayout({ children }: { children: React.React
           <div className="mb-6 px-2 text-lg font-semibold">My Nav · 后台</div>
           <nav className="flex flex-1 flex-col gap-1 text-sm">
             <NavLink href="/admin/links">链接管理</NavLink>
+            <NavLink href="/admin/submissions">推荐审核</NavLink>
             <NavLink href="/admin/categories">分类管理</NavLink>
             <NavLink href="/admin/search">搜索引擎</NavLink>
             <NavLink href="/admin/settings">站点设置</NavLink>

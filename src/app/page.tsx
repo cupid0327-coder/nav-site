@@ -4,6 +4,7 @@ import { categories, links, searchEngines, settings } from '@/db/schema';
 import Link from 'next/link';
 import { Settings } from 'lucide-react';
 import { SearchBar } from '@/components/public/search-bar';
+import { RecommendDialog } from '@/components/public/recommend-dialog';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 export const dynamic = 'force-dynamic';
@@ -33,6 +34,7 @@ export default async function HomePage() {
         <div className="container flex h-14 items-center justify-between">
           <div className="text-base font-semibold">{title}</div>
           <div className="flex items-center gap-2">
+            <RecommendDialog />
             <Link
               href="/admin"
               title="管理后台"

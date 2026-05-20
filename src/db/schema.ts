@@ -43,7 +43,20 @@ export const settings = sqliteTable('settings', {
   value: text('value').notNull(),
 });
 
+export const linkSubmissions = sqliteTable('link_submissions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  title: text('title').notNull(),
+  url: text('url').notNull(),
+  description: text('description'),
+  note: text('note'),
+  status: text('status').notNull().default('pending'),
+  submitterIp: text('submitter_ip'),
+  reviewedAt: text('reviewed_at'),
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 export type Category = typeof categories.$inferSelect;
 export type Link = typeof links.$inferSelect;
 export type SearchEngine = typeof searchEngines.$inferSelect;
 export type User = typeof users.$inferSelect;
+export type LinkSubmission = typeof linkSubmissions.$inferSelect;
