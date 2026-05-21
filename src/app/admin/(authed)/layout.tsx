@@ -3,16 +3,24 @@ import { redirect } from 'next/navigation';
 import { auth, signOut } from '@/lib/auth';
 import { Providers } from '../providers';
 import { Button } from '@/components/ui/button';
+import { db } from '@/db';
+import { settings } from '@/db/schema';
+
+export const dynamic = 'force-dynamic';
 
 export default async function AuthedLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
   if (!session?.user) redirect('/admin/login');
 
+  const settingRows = db.select().from(settings).all();
+  const settingMap = Object.fromEntries(settingRows.map((r) => [r.key, r.value]));
+  const siteTitle = settingMap.siteTitle || 'My Nav';
+
   return (
     <Providers>
       <div className="flex min-h-screen">
         <aside className="hidden w-56 shrink-0 border-r bg-muted/30 p-4 md:flex md:flex-col">
-          <div className="mb-6 px-2 text-lg font-semibold">My Nav · 后台</div>
+          <div className="mb-6 px-2 text-lg font-semibold">{siteTitle} · 后台</div>
           <nav className="flex flex-1 flex-col gap-1 text-sm">
             <NavLink href="/admin/links">链接管理</NavLink>
             <NavLink href="/admin/submissions">推荐审核</NavLink>
