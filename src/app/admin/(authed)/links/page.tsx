@@ -64,15 +64,8 @@ export default function LinksPage() {
   }
 
   async function restoreDefaultIcon() {
-    const inp = document.querySelector<HTMLInputElement>('input[name=url]');
-    const url = inp?.value;
-    if (!url) {
-      alert('请先填写 URL');
-      return;
-    }
-    if (!confirm('确定放弃当前自定义图标，重新从网站抓取 favicon？')) return;
+    if (!confirm('确定清除当前图标？保存后将显示标题首字符占位。')) return;
     setIconUrl('');
-    await refreshFavicon(url);
   }
 
   async function onUpload(file: File) {
@@ -201,10 +194,10 @@ export default function LinksPage() {
                     variant="outline"
                     size="sm"
                     disabled={iconBusy}
-                    title="放弃自定义图标，重新从网站抓取 favicon"
+                    title="清除图标，保存后显示标题首字符占位"
                     onClick={restoreDefaultIcon}
                   >
-                    <RotateCcw className="mr-1 h-3 w-3" /> 还原默认
+                    <RotateCcw className="mr-1 h-3 w-3" /> 清除图标
                   </Button>
                   <Input
                     type="file"
@@ -232,6 +225,7 @@ export default function LinksPage() {
                 <Label htmlFor="hidden" className="cursor-pointer">隐藏（未登录访客看不到）</Label>
               </div>
               <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>取消</Button>
                 <Button type="submit" disabled={iconBusy}>保存</Button>
               </DialogFooter>
             </form>
