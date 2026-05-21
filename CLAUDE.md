@@ -42,7 +42,9 @@ All POST/PUT bodies go through Zod schemas in `src/lib/validation.ts`. `linkSche
 ### Frontend conventions
 - `src/lib/api-client.ts` `apiFetch<T>()` is the thin JSON fetch wrapper used by all admin client components.
 - Admin pages under `(authed)/` are client components that load through `apiFetch` and re-load after each mutation. The public homepage is a server component that queries Drizzle directly and calls `auth()` to decide whether to show hidden links and the per-card `EyeOff` badge.
-- UI primitives in `src/components/ui/` are shadcn-style (Radix + CVA + `cn()` helper from `src/lib/utils.ts`). Icons are `lucide-react`.
+- `src/app/admin/(authed)/layout.tsx` is also a server component and reads `settings.siteTitle` directly from Drizzle so the sidebar title matches the public site. It declares `export const dynamic = 'force-dynamic'` to avoid being static-optimized (otherwise the title would freeze at build time).
+- The public homepage shows `l.title.slice(0, 1).toUpperCase()` as a placeholder when `iconUrl` is null. The admin links page exposes a "清除图标" button that just clears `iconUrl` so this fallback kicks in on save — it does NOT re-fetch favicon (that's what the separate "抓取" button is for).
+- UI primitives in `src/components/ui/` are shadcn-style (Radix + CVA + `cn()` helper from `src/lib/utils.ts`). Icons are `lucide-react`. `DialogContent` caps height with `max-h-[calc(100dvh-2rem)] overflow-y-auto` so tall dialogs scroll instead of getting clipped at the top by the `-translate-y-1/2` centering.
 
 ### Favicon pipeline
 `src/lib/favicon.ts` `fetchAndSaveFavicon(targetUrl)` is the only place that fetches/saves icons. It tries HTML `<link rel="icon">` → `/favicon.ico` → Google S2, sniffs the magic bytes for the extension, and saves to `public/uploads/icons/{sha1}.{ext}`. Called automatically by `POST /api/links` and the approval flow when `iconUrl` is empty.
@@ -63,7 +65,7 @@ PM2 + Nginx on a VPS. `npm run build` produces `.next/standalone`; copy `public/
 
 **Single-process constraint**: `ecosystem.config.cjs` runs `instances: 1, exec_mode: 'fork'`. Do not change to cluster mode — the in-memory rate limiter and the better-sqlite3 connection are per-process and would diverge across workers.
 
-**Upgrade path for existing deployments**: `git pull && npm ci && npm run db:migrate && npm run build`, recopy `public/` + `.next/static/` into `.next/standalone/`, then `pm2 restart n_site`. If the instance was originally bootstrapped with `db:push` (empty `__drizzle_migrations`), the first `db:migrate` will hit "table already exists" — see the Data layer gotcha above for the SHA-256 workaround.
+**Upgrade path for existing deployments**: Prefer `bash deploy/update.sh` — it pulls, `npm ci`s, backs up `.next/standalone/.env` (the build wipes it), rebuilds, rsyncs `public/` (excluding `uploads/` so server-side favicons survive) and `.next/static/`, restores `.env`, and `pm2 restart`s. If there's a pending migration, run `DATABASE_URL=/abs/path/data/app.db npm run db:migrate` separately — `update.sh` does NOT auto-migrate to avoid surprises. If the instance was originally bootstrapped with `db:push` (empty `__drizzle_migrations`), the first `db:migrate` will hit "table already exists" — see the Data layer gotcha above for the SHA-256 workaround.
 
 ### Deployment gotchas (learned the hard way)
 
